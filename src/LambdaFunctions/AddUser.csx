@@ -1,4 +1,4 @@
-/*      Usage: Lambda function to add FlowEntity (See class at bottom) to Azure Table Storage
+/*      Usage: Lambda function to add new user (See class at bottom) to Azure Table Storage
  *
  *      Configuration notes:
  *      Trigger: HTTP (req)
