@@ -1,4 +1,6 @@
-/* Configuration notes:
+/* 	Usage: Lambda function to add FlowEntity (See class at bottom) to Azure Table Storage
+ * 
+ *	Configuration notes:
  *	Trigger: HTTP (req)
  *	Inputs: Azure Table Storage (inTable)
  *	Outputs: HTTP ($return)
