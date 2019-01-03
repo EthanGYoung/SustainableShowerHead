@@ -41,15 +41,15 @@ unsigned long curr_time;
 /* Look into time method takes to run */
 void setup() {
   Serial.begin(9600);
-
+  
   startWiFi();
-
+  
   configureHostConnection();
-
+  
   startOTA();
-
+  
   configHW();
-
+  
   sendIsAlive();
   
 }
@@ -71,9 +71,11 @@ void loop() {
 
   double rate = calculateFlowRate(seconds, curr_time - start_time);
 
-  // Send post request to send data
-  sendPostRequest(FLOW_DATA, String(rate));
-  payloadHandled();
+  if (rate > 0) {
+    // Send post request to send data
+    sendPostRequest(FLOW_DATA, String(rate));
+    payloadHandled();
+  }
 
   
 }
@@ -124,6 +126,7 @@ void sendIsAlive() {
  *  Return: https response code 
  */
 int sendGetRequest(String action) {
+  Serial.println("Sending GET Request");
   return client.GET();
 }
 
@@ -156,7 +159,7 @@ void payloadHandled() {
 String constructDataPayload(String action, String value) {
   /* Create JSON payload
        {
-         "deviceId": "575ecf887ae143cd83dc4aa2",
+         "deviceId": "00000001",
          "softwareVersion": "1.0"
          "Action": "Action",
          "Value": "Value_Associated_With_Action",
@@ -165,7 +168,7 @@ String constructDataPayload(String action, String value) {
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& req = jsonBuffer.createObject();
   
-  req["deviceId"] = DEVICE_ID;
+  req["deviceID"] = DEVICE_ID;
   req["sofwareVersion"] = SOFTWARE_VERSION;
   req["Action"] = action;
   req["Value"] = value;
