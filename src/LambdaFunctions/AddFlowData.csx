@@ -64,7 +64,7 @@ public class FlowEntity : TableEntity
     public FlowEntity(string deviceID)
     {
         this.PartitionKey = deviceID;
-        this.RowKey = (DateTime.Now).ToString("yyyyMMddHHmmssffff");
+        this.RowKey = (DateTime.UtcNow).ToString("yyyyMMddHHmmssffff");
     }
 
     public string flow { get; set; }
