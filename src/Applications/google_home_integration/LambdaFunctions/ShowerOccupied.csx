@@ -11,7 +11,6 @@
  * 	Authorization Level: Function
  *
  */
-
 #r "Newtonsoft.Json"
 #r "Microsoft.WindowsAzure.Storage"
 
@@ -32,7 +31,7 @@ public static async Task<HttpResponseMessage> Run(HttpRequest req, ILogger log, 
 
     string textToSpeech;
 
-    if (await DetermineIfRunning(inputTable)) {
+    if (await DetermineIfRunning(inputTable, log)) {
         textToSpeech = "The shower is currently occupied.";
     } else {
         textToSpeech = "The shower is currently unoccupied";
@@ -61,8 +60,8 @@ private static async Task<HttpResponseMessage> CreateResponse(string textToSpeec
     };
 }
 
-/* Not efficient of getting all in partition */
-private static async Task<bool> DetermineIfRunning(CloudTable inputTable) {
+/* Not sustainable of getting all in partition */
+private static async Task<bool> DetermineIfRunning(CloudTable inputTable, ILogger log) {
     // Construct the query operation for all customer entities where PartitionKey="Smith".
     TableQuery<FlowEntity> query = new TableQuery<FlowEntity>().Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "00000001"));
 
@@ -71,7 +70,7 @@ private static async Task<bool> DetermineIfRunning(CloudTable inputTable) {
 
     // Get time from 1 minute earlier
     DateTime utcDate = DateTime.UtcNow;
-    utcDate = utcDate.Subtract(new TimeSpan(0,-1,0));
+    utcDate = utcDate.Add(new TimeSpan(0,-1,0));
 
     do
     {
@@ -80,8 +79,10 @@ private static async Task<bool> DetermineIfRunning(CloudTable inputTable) {
 
        foreach (FlowEntity entity in resultSegment.Results)
        {
+           log.LogInformation("utcDate: " + utcDate);
+           log.LogInformation("storedDate: " + DateTime.ParseExact(entity.RowKey, "yyyyMMddHHmmssffff", null));
            // Check if row is within 1 min of now
-            if (DateTime.Compare(utcDate, DateTime.ParseExact(entity.RowKey, "yyyyMMddHHmmssffff", null)) > 0) {
+            if (DateTime.Compare(utcDate, DateTime.ParseExact(entity.RowKey, "yyyyMMddHHmmssffff", null)) < 0) {
                 return true;
             }
       }
@@ -102,3 +103,6 @@ public class FlowEntity : TableEntity
 
     public string flow { get; set; }
 }
+
+
+
