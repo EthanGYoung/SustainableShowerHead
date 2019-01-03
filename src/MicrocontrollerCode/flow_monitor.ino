@@ -22,6 +22,7 @@ const char* OTAPassword = OTA_PASSWORD_SECRET;
 
 // Action Configuration
 #define FLOW_DATA     "Flow_Data"
+#define IS_ALIVE      "Is_Alive"
 
 // HW Configuration
 const int flowsensor = 0; // Pin number of sensor
@@ -37,6 +38,7 @@ unsigned long curr_time;
 
 /*________________________________________________________________SETUP___________________________________________________________________________________*/
 
+/* Look into time method takes to run */
 void setup() {
   Serial.begin(9600);
 
@@ -47,6 +49,8 @@ void setup() {
   startOTA();
 
   configHW();
+
+  sendIsAlive();
   
 }
 
@@ -105,6 +109,22 @@ void startWiFi() {
 
 void configureHostConnection() {
   client.begin(HOST, HTTPS_PORT, END_POINT, true, FINGERPRINT);
+}
+
+/* Tells cloud that this device booted up */
+void sendIsAlive() {
+  sendGetRequest(IS_ALIVE);
+  payloadHandled();
+  
+  // Future: Handle updating state to match what is returned
+}
+
+/* 
+ *  Formats GET request and sends it to END_POINT
+ *  Return: https response code 
+ */
+int sendGetRequest(String action) {
+  return client.GET();
 }
 
 /* 
