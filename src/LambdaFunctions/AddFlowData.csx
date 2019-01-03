@@ -14,7 +14,6 @@
  */
 
 
-
 #r "Newtonsoft.Json"
 #r "Microsoft.WindowsAzure.Storage"
 
@@ -25,11 +24,26 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using System.Web;
 
 public static async Task<IActionResult> Run(HttpRequest req, ILogger log, CloudTable inTable, CloudTable outputTable)
-{
-    log.LogInformation("Handling Post Request with Data.");
+{   
+    // Determine which handler to run
+    if (req.Method == "POST")
+    {
+        // The action is a POST.
+        log.LogInformation("Handling Post Request with Data.");
+        return await handlePOST(req, outputTable);
+    } else {
+        // The action is a GET.
+        log.LogInformation("Handling GET Request. Responding with expected state.");
+        return await handleGET(req);
+    }
 
+}
+
+/* Updates entry in Azure Storage Table. Returns Success if successful */
+private static async Task<IActionResult> handlePOST(HttpRequest req, CloudTable outputTable) {
     // What does this do?
     string device = req.Query["deviceID"];
     string softwareVersion = req.Query["softwareVersion"];
@@ -59,15 +73,18 @@ public static async Task<IActionResult> Run(HttpRequest req, ILogger log, CloudT
     return (ActionResult)new OkObjectResult("Successfully added flow");
 }
 
+/* Responds with metadata for configuration of this device */
+private static async Task<IActionResult> handleGET(HttpRequest req) {
+    return (ActionResult)new OkObjectResult("{'version' : '0.1'}");
+}
+
 public class FlowEntity : TableEntity
 {
     public FlowEntity(string deviceID)
     {
         this.PartitionKey = deviceID;
-        this.RowKey = (DateTime.Now).ToString("yyyyMMddHHmmssffff");
+        this.RowKey = (DateTime.UtcNow).ToString("yyyyMMddHHmmssffff");
     }
 
     public string flow { get; set; }
 }
-
-
